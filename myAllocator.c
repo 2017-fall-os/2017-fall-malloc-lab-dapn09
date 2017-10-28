@@ -345,22 +345,29 @@ BlockPrefix_t *findNextFit(size_t s) {
     
 }
 
-//find the biggest block available, biggest since the bestFit Allocator
+//find the best fit block
 BlockPrefix_t *findBestFit(size_t s) {	
     
     BlockPrefix_t *p = arenaBegin;
-    BlockPrefix_t *bestFit = arenaBegin;
-	
+    BlockPrefix_t *bestFit = p;
+    int foundOne = 0;
+    size_t asize = align8(s);
     while (p) {
-      if (!p->allocated && computeUsableSpace(p) >= s){
-	    return p;
+      if (!p->allocated && computeUsableSpace(p) >= (asize + prefixSize + suffixSize + 8)){//find smallest block that could accomodate
+	    if(computeUsableSpace(p) <= computeUsableSpace(bestFit) ){
+	      bestFit = p;
+	    }
+	    foundOne = 1;  
       }
 	p = getNextPrefix(p);
     }
+    if(foundOne){
+       return bestFit;	    
+    }else	
     return growArena(s);
 }
 
-//Best fit consists of finding the block that is the smallest possible space in which the
+//Best fit consists of finding the block that is the smallest in which the
 //requested space fits. Even when there are many free blocks.
 void *bestFitAllocator(size_t s){
 
@@ -371,7 +378,7 @@ void *bestFitAllocator(size_t s){
   p = findBestFit(s);	       
   if (p) {			/* found a block */
     size_t availSize = computeUsableSpace(p);
-    if (availSize >= (asize + prefixSize + suffixSize + 8)) { /* split block? */
+    if (availSize >= (asize + prefixSize + suffixSize + 8)) {
       void *freeSliverStart = (void *)p + prefixSize + suffixSize + asize;
       void *freeSliverEnd = computeNextPrefixAddr(p);
       makeFreeBlock(freeSliverStart, freeSliverEnd - freeSliverStart);
