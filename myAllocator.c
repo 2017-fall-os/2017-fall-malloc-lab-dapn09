@@ -345,11 +345,14 @@ BlockPrefix_t *findNextFit(size_t s) {
     
 }
 
+//find the biggest block available, biggest since the bestFit Allocator
 BlockPrefix_t *findBestFit(size_t s) {	
+    
     BlockPrefix_t *p = arenaBegin;
+    BlockPrefix_t *bestFit = arenaBegin;
+	
     while (p) {
       if (!p->allocated && computeUsableSpace(p) >= s){
-	    current = p; //save a reference to next prefix so that next time we continue searching there.
 	    return p;
       }
 	p = getNextPrefix(p);
