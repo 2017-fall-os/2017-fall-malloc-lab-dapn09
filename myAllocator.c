@@ -70,11 +70,18 @@ BlockPrefix_t *makeFreeBlock(void *addr, size_t size) {
 BlockPrefix_t *arenaBegin = (void *)0;
 void *arenaEnd = 0;
 
+//For NextFit initially we search on arena begin.
+BlockPrefix_t *current = (void *)0;
+
+
 void initializeArena() {
     if (arenaBegin != 0)	/* only initialize once */
 	return; 
     arenaBegin = makeFreeBlock(sbrk(DEFAULT_BRKSIZE), DEFAULT_BRKSIZE);
     arenaEnd = ((void *)arenaBegin) + DEFAULT_BRKSIZE;
+
+    //when initiallized make current be the start of arena.
+    current = arenaBegin;
 }
 
 size_t computeUsableSpace(BlockPrefix_t *p) { /* useful space within a block */
@@ -269,4 +276,107 @@ void *resizeRegion(void *r, size_t newSize) {
     return (void *)n;
   }
 }
+
+
+/////////////////////BEGIN LAB 3 FUNCTIONS/////////////////////
+
+//NextFit, instead of reading the memory from the beginning everytime a request is made, a reference to the location of the beginning of free memory is saved.
+
+void *nextFitAllocRegion(size_t s) {
+  size_t asize = align8(s);
+  BlockPrefix_t *p;
+  if (arenaBegin == 0)		/* arena uninitialized? */
+    initializeArena();
+  p = findNextFit(s);		/* find a block */
+  if (p) {			/* found a block */
+    size_t availSize = computeUsableSpace(p);
+    if (availSize >= (asize + prefixSize + suffixSize + 8)) { /* split block? */
+      
+      BlockPrefix_t *nextPref = computeNextPrefixAddr(p);
+      
+      if((void*) nextPref == arenaEnd){//if this is the last block      
+      void *freeSliverStart = (void *)p + prefixSize + suffixSize + asize;
+      void *freeSliverEnd = computeNextPrefixAddr(p);
+      makeFreeBlock(freeSliverStart, freeSliverEnd - freeSliverStart);
+      makeFreeBlock(p, freeSliverStart - (void *)p); /* piece being allocated */
+      }
+    }
+    p->allocated = 1;           /* mark as allocated */
+    
+    return prefixToRegion(p);	/* convert to *region */
+  } else {			/* failed */
+    return (void *)0;
+  }
+  
+}
+
+BlockPrefix_t *findNextFit(size_t s) {	/* find next block with usable space > s */
+
+    BlockPrefix_t *p = current;
+
+    //these two variables will let us know if we have circled around looking for blocks.
+    BlockPrefix_t *startingPoint = p;
+    int circledAround = 0;//effectively boolean
+    
+    while (p || !circledAround) {//while not reached arenaEnd and haven't circled around.
+
+      if(!p && !circledAround && startingPoint != arenaBegin){//to search if blocks were freed before starting point.
+
+	p = arenaBegin;//loop back
+	circledAround = 1;//mark that we already looped once
+	  
+      }
+
+      if(circledAround && p == startingPoint){//if we have returned to the place we started searching from. 
+	break;
+      }
+	
+      if (!p->allocated && computeUsableSpace(p) >= s){
+	    current = p; //save a reference to next prefix so that next time we continue searching there.
+	    return p;
+      }
+	p = getNextPrefix(p);
+    }
+    return growArena(s);
+    
+}
+
+BlockPrefix_t *findBestFit(size_t s) {	/* find first block with usable space > s */
+    BlockPrefix_t *p = current;
+    while (p) {
+      if (!p->allocated && computeUsableSpace(p) >= s){
+	    current = p; //save a reference to next prefix so that next time we continue searching there.
+	    return p;
+      }
+	p = getNextPrefix(p);
+    }
+    return growArena(s);
+}
+
+//Best fit consists of finding the block that is the smallest possible space in which the
+//requested space fits. Even when there are many free blocks.
+void *bestFitAllocator(size_t s){
+
+  size_t asize = align8(s);
+  BlockPrefix_t *p;
+  if (arenaBegin == 0)		/* arena uninitialized? */
+    initializeArena();
+  p = findBestFit(s);	       
+  if (p) {			/* found a block */
+    size_t availSize = computeUsableSpace(p);
+    if (availSize >= (asize + prefixSize + suffixSize + 8)) { /* split block? */
+      void *freeSliverStart = (void *)p + prefixSize + suffixSize + asize;
+      void *freeSliverEnd = computeNextPrefixAddr(p);
+      makeFreeBlock(freeSliverStart, freeSliverEnd - freeSliverStart);
+      makeFreeBlock(p, freeSliverStart - (void *)p); /* piece being allocated */
+    }
+    p->allocated = 1;		/* mark as allocated */
+    return prefixToRegion(p);	/* convert to *region */
+  } else {			/* failed */
+    return (void *)0;
+  }
+}
+
+/////////////////////////END LAB3 FUNCTIONS////////////////////
+
 

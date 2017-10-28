@@ -19,43 +19,35 @@ void getutime(struct timeval *t)
 
 int main() 
 {
-  void *p1, *p2, *p3;
+  void *p1, *p2, *p3, *p4;
   arenaCheck();
-  p1 = firstFitAllocRegion(254);
+  p1 = nextFitAllocRegion(254);
   arenaCheck();
-  p2 = firstFitAllocRegion(25400);
+  p2 = nextFitAllocRegion(25400);
   arenaCheck();
-  p3 = firstFitAllocRegion(254);
-  printf("%8zx %8zx %8zx\n", p1, p2, p3);
+  p3 = nextFitAllocRegion(254);
   arenaCheck();
-  freeRegion(p2);
+  p4 = nextFitAllocRegion(160);
+
+  printf("%8zx %8zx %8zx %8zx\n", p1, p2, p3, p4);
   arenaCheck();
   freeRegion(p3);
-  arenaCheck(); //added line
-  p3 = firstFitAllocRegion(260000);//added line
+  arenaCheck();
+  
+  p3 = nextFitAllocRegion(310);//added line
   arenaCheck();
   freeRegion(p1);
   arenaCheck();
-  
-  //these 2 lines check that firstFitAllocRegion starts from
-  //arenaBegin every time. If true, the next block should be 
-  //placed before the 260000 block, on the printed output
-  //since it is the first available free block.
 
-  p1 = firstFitAllocRegion(254);//added line
-  arenaCheck(); //added line
   {				/* measure time for 10000 mallocs */
     struct timeval t1, t2;
     int i;
     getutime(&t1);
     for(i = 0; i < 10000; i++)
-      if (firstFitAllocRegion(4) == 0) 
+      if (nextFitAllocRegion(4) == 0) 
 	break;
     getutime(&t2);
-    printf("%d firstFitAllocRegion(4) required %f seconds\n", i, diffTimeval(&t2, &t1));
+    printf("%d nextFitAllocRegion(4) required %f seconds\n", i, diffTimeval(&t2, &t1));
   }
   return 0;
 }
-
-
-
