@@ -310,7 +310,8 @@ void *nextFitAllocRegion(size_t s) {
   
 }
 
-BlockPrefix_t *findNextFit(size_t s) {	/* find next block with usable space > s */
+//start search from the last block that was allocated, if none found loop around until back to where we started.
+BlockPrefix_t *findNextFit(size_t s) {	
 
     BlockPrefix_t *p = current;
 
@@ -320,17 +321,20 @@ BlockPrefix_t *findNextFit(size_t s) {	/* find next block with usable space > s 
     
     while (p || !circledAround) {//while not reached arenaEnd and haven't circled around.
 
-      if(!p && !circledAround && startingPoint != arenaBegin){//to search if blocks were freed before starting point.
+      //loop around
+      if(!p && !circledAround && startingPoint != arenaBegin){
 
-	p = arenaBegin;//loop back
+	p = arenaBegin;
 	circledAround = 1;//mark that we already looped once
 	  
       }
-
+	    
+      //if we already looped and are back to starting point
       if(circledAround && p == startingPoint){//if we have returned to the place we started searching from. 
 	break;
       }
-	
+   
+      //if usable block is found then update starting point and return until next time.
       if (!p->allocated && computeUsableSpace(p) >= s){
 	    current = p; //save a reference to next prefix so that next time we continue searching there.
 	    return p;
@@ -341,8 +345,8 @@ BlockPrefix_t *findNextFit(size_t s) {	/* find next block with usable space > s 
     
 }
 
-BlockPrefix_t *findBestFit(size_t s) {	/* find first block with usable space > s */
-    BlockPrefix_t *p = current;
+BlockPrefix_t *findBestFit(size_t s) {	
+    BlockPrefix_t *p = arenaBegin;
     while (p) {
       if (!p->allocated && computeUsableSpace(p) >= s){
 	    current = p; //save a reference to next prefix so that next time we continue searching there.
