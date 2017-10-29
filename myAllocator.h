@@ -22,5 +22,7 @@ BlockPrefix_t *regionToPrefix(void *r);
 void *nextFitAllocRegion(size_t s);
 BlockPrefix_t *findNextFit(size_t s);
 
+void *bestFitAllocRegion(size_t s);
+BlockPrefix_t *findBestFit(size_t s);
 
 #endif // myAllocator_H

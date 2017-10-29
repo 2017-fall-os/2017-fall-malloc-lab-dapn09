@@ -44,7 +44,7 @@ int main()
 
   p1 = firstFitAllocRegion(254);//added line
   arenaCheck(); //added line
-  {				/* measure time for 10000 mallocs */
+  				/* measure time for 10000 mallocs */
     struct timeval t1, t2;
     int i;
     getutime(&t1);
@@ -53,7 +53,7 @@ int main()
 	break;
     getutime(&t2);
     printf("%d firstFitAllocRegion(4) required %f seconds\n", i, diffTimeval(&t2, &t1));
-  }
+  
   return 0;
 }
 
