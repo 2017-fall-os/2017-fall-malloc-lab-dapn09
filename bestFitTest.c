@@ -33,6 +33,11 @@ int main()
   arenaCheck();
   freeRegion(p2);
   arenaCheck();
+
+  /*
+   * There are two places where the next allocated block could   *  be placed, it is placed so that it creates the lowest 
+   * fragmentation.
+   **/
   
   p2 = bestFitAllocRegion(310);//added line
   arenaCheck();
