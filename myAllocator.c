@@ -368,8 +368,10 @@ BlockPrefix_t *findBestFit(size_t s) {	/* find first block with usable space > s
 }
 
 
-//Best fit consists of finding the block that is the smallest in which the
-//requested space fits. Even when there are many free blocks.
+//Best fit consists of finding the block in which the requested space fits. 
+//Creating the least fragmentation, for this we need the biggest free block,
+//we use makeFreeBlock just as before to make the new block just the right size.
+
 void *bestFitAllocRegion(size_t s){
 
   size_t asize = align8(s);
