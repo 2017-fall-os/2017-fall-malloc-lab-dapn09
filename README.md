@@ -1,11 +1,13 @@
-# os-malloc
-This directory contains:
+## lab 3: nextFit & bestFit ##
+
+
+In this lab I implement nextFit and bestFit inside myAllocator.c   
+
+The given files to me are: 
 
 myAllocator.c: a first-fit allocator
 myAllocator.h: its header file
-
 myAllocatorTest1.c: a test program for my allocator 
-
 malloc.c: a replacement for malloc that uses my allocator
 test1.c: a test program that uses this replacement malloc
 
@@ -22,6 +24,12 @@ To compile:
  $ make 
 To clean:
  $ make clean
+ 
+To test nextFit:
+``` $ ./nextFitTest ```
+
+To test bestFit:
+``` $ ./bestFitTest ```
 
 The cygwin runtime uses malloc() and brk() extensively.  It is
 interesting to compare the output of test1 & myAllocatorTest1.  All
